@@ -1,0 +1,92 @@
+/* Set the background with the GIF */
+.auth-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-image: url('/src/components/images/Auth.png'); /* Adjust path if necessary */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  animation: none; /* Ensure the GIF controls its own frame rate */
+}
+
+.auth-box {
+  width: 400px;
+  padding: 20px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.auth-heading {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 7px;
+  text-align: center;
+}
+
+.auth-subtext {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.or-separator {
+  font-size: 1rem;
+  color: #888;
+  margin: 20px 0;
+  text-align: center;
+}
+/* Center the login button horizontally */
+.login-button {
+  display: flex;
+  justify-content: center;
+  width: 100%; /* Ensure it spans the entire width of its parent */
+}
+
+.toggle-auth {
+  font-size: 0.9rem;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.toggle-auth span {
+  color: #007bff;
+  cursor: pointer;
+}
+
+.forgot-password {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #007bff;
+  cursor: pointer;
+  text-align: center;
+}
+
+.input-field {
+  width: 95%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+.signup-form p,
+.login-form p {
+  margin: 10px; /* Remove the margin between text and input */
+  font-size: 14px; /* Optional: adjust text size if needed */
+}
+.login-btn,
+.reset-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.error-message {
+  color: red;
+  text-align: center;
+  margin-top: 10px;
+}
