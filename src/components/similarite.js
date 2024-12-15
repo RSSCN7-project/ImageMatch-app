@@ -16,6 +16,7 @@ const Similarite = () => {
   const [similarImages, setSimilarImages] = useState([]);
   const [queryDescriptors, setQueryDescriptors] = useState({});
   const [feedbackItems, setFeedbackItems] = useState([]);
+  const [selectedAnalysis, setSelectedAnalysis] = useState(null);
   const [userName, setUserName] = useState(""); // For storing the user's name
   const analysisTypes = [
     { key: 'histogram', label: 'Histogram', component: HistogramComponent },
@@ -146,6 +147,8 @@ const Similarite = () => {
              {analysisTypes.map(type => (
   <button
     key={type.key}
+    className={`btn ${selectedAnalysis === type.key ? 'btn-primary' : 'btn-secondary'} mr-2`}
+    onClick={() => setSelectedAnalysis(type.key)}
     disabled={!similarImages.length}
     style={{
       width: '135px', // Fixed width for buttons
@@ -174,6 +177,17 @@ const Similarite = () => {
                 </div>
               </div>
             </div>
+            {uploadedImage && (
+  selectedAnalysis === 'histogram' ? (
+    <HistogramComponent imageFilename={`http://localhost:5001/${uploadedImage}`} />
+  ) : selectedAnalysis === 'dominant_colors' ? (
+    <DominantColorsComponent imageFilename={`http://localhost:5001/${uploadedImage}`} />
+  ) : selectedAnalysis === 'gabor_descriptors' ? (
+    <GaborDescriptorsComponent imageFilename={`http://localhost:5001/${uploadedImage}`} />
+  ) : (
+    <HuMomentsComponent imageFilename={`http://localhost:5001/${uploadedImage}`} />
+  )
+)}
           </div>
         </div>
 
@@ -326,92 +340,6 @@ const Similarite = () => {
 </div>
 </div>
 </div>
-    <div style={{ padding: "20px" }}>
-      <h1>Uploaded Image</h1>
-      {uploadedImage ? (
-        <img
-          src={`http://localhost:5001/${uploadedImage}`}
-          alt="Uploaded"
-          style={{
-            maxWidth: "300px",
-            border: "1px solid #ccc",
-            borderRadius: "5px",
-            marginBottom: "20px",
-          }}
-        />
-      ) : (
-        <p>No uploaded image to display.</p>
-      )}
-
-      <h2>Similar Images</h2>
-      {similarImages.length > 0 ? (
-        <div style={{ display: "flex", flexWrap: "wrap" }}>
-          {similarImages.map((image, index) => (
-            <div
-              key={index}
-              style={{
-                margin: "10px",
-                border: "1px solid #ddd",
-                padding: "10px",
-                width: "200px",
-                borderRadius: "5px",
-                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-              }}
-            >
-              <img
-                src={`http://localhost:5001${image.image_path}`}
-                alt={`Similar ${index + 1}`}
-                style={{
-                  width: "100%",
-                  height: "150px",
-                  objectFit: "cover",
-                  borderRadius: "5px",
-                  marginBottom: "10px",
-                }}
-              />
-              <p><strong>Category:</strong> {image.category}</p>
-              <p><strong>Similarity Score:</strong> {image.similarity_score.toFixed(2)}</p>
-              
-              {/* Feedback Dropdown */}
-              <div style={{ marginTop: "10px" }}>
-                <label htmlFor={`feedback-${index}`}>Feedback</label>
-                <select
-                  id={`feedback-${index}`}
-                  value={image.feedback || "neutral"}  // Default to neutral if no feedback
-                  onChange={(event) => handleFeedbackChange(index, event)}
-                  style={{
-                    width: "100%",
-                    padding: "5px",
-                    marginTop: "5px",
-                  }}
-                >
-                  <option value="neutral">Neutral</option>
-                  <option value="irrelevant">Irrelevant</option>
-                  <option value="relevant">Relevant</option>
-                </select>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p>No similar images to display.</p>
-      )}
-
-      <button
-        onClick={handleSubmitFeedback}
-        style={{
-          marginTop: "20px",
-          padding: "10px 20px",
-          backgroundColor: "#4CAF50",
-          color: "white",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer",
-        }}
-      >
-        Submit Feedback
-      </button>
-    </div>
     </div>
   );
 };
