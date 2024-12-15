@@ -1,0 +1,10 @@
+[
+    {
+        "histogram": 0.03730743430055665,
+        "dominant_colors": 0.03730743430055665,
+        "gabor_descriptors": 0.688942501090128,
+        "hu_moments": 0.16182776170764515,
+        "texture_energy": 0.03730743430055665,
+        "circularity": 0.03730743430055665
+    }
+]
