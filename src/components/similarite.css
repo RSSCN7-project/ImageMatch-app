@@ -18,7 +18,7 @@ https://templatemo.com/tm-524-product-admin
   
   /* Header Area Styling */
   .header-area {
-    background-color: #ffffff49;
+    background-color: #5a72a02b;
     position: absolute;
     height: 80px;
     top: 0;
@@ -33,6 +33,7 @@ https://templatemo.com/tm-524-product-admin
     align-items: center;
     justify-content: space-between; /* Ensures proper alignment of elements */
     padding: 0 20px;
+    border-radius: 10px;
   }
   
   /* Welcome Message Styling */
@@ -122,7 +123,7 @@ html {
     -moz-box-shadow: 1px 1px 5px 0 #455c71;
     box-shadow: 1px 1px 5px 0 #455c71;
     min-height: 250px;
-    height: 480px;
+    height: 880px;
     max-height: 480px;
   }
   .tm-block-avatar,
@@ -429,7 +430,7 @@ html {
     color: #a0c0de;
   }
   .tm-bg-primary-dark {
-    background-color: #033761;
+    background-color:#033761;
   }
   .tm-bg-gray {
     background-color: rgba(0, 0, 0, 0.05);
@@ -686,7 +687,7 @@ html {
       margin-right: 0;
     }
     .tm-block-taller {
-      max-height: 520px;
+      max-height: 20px;
     }
   }
   @media (max-width: 1199.98px) {

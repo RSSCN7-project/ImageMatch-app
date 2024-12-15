@@ -74,7 +74,7 @@ header, nav, section, article, aside, footer, hgroup {
 html, body {
   font-family: 'Roboto', sans-serif;
   font-weight: 400;
-  background-color: #fff;
+  background-color: #033f78;
   font-size: 16px;
   -ms-text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
@@ -113,7 +113,7 @@ Global Styles
 */
 html,
 body {
-  background: #fff;
+  background-color: #033f78;
   font-family: 'Roboto', sans-serif;
 }
 
@@ -241,7 +241,7 @@ Header Style
 .header-area {
   background-color: #fff;
   position: absolute;
-  height: 70px;
+  height: 90px;
   top: 0;
   left: 0;
   right: 0;
@@ -853,7 +853,7 @@ section.featured-items {
 /* Set the background image for the logo */
 .header-area .main-navv .logoo {
   width: 1000px;
-  height: 70px; /* Ensure dimensions match your design */
+  height: 100px; /* Ensure dimensions match your design */
   background-image: url('/src/components/images/logo1.png'); /* Path from public folder */
   background-size: contain; /* Adjust the size to fit the container */
   background-repeat: no-repeat;
@@ -901,7 +901,7 @@ section.featured-items {
   }
   .main-nav .logo {
     width: 120px;
-    height: 40px;
+    height: 90px;
   }
 }
 
@@ -1046,6 +1046,7 @@ About Style
 */
 #about {
   padding-top: 50px;
+  background-color: #033f78;
 }
 
 .about-left-image img {
@@ -1129,30 +1130,31 @@ Services Style
 .services {
   padding-top: 130px;
   position: relative;
+  padding-bottom: 130px
 }
 
 .services:after {
   content: '';
-  background-image: url(./images/services-left-dec.jpg);
+  background-color: #ffffff;
   background-repeat: no-repeat;
   position: absolute;
   left: 0;
   top: 0px;
   width: 786px;
-  height: 817px;
+  height: 987px;
   z-index: 0;
 }
 
 .services:before {
   content: '';
-  background-image: url(./images/services-right-dec.jpg);
+  background-color: #ffffff;
   background-repeat: no-repeat;
   position: absolute;
-  right: 0;
-  top: 400px;
-  width: 161px;
-  height: 413px;
-  z-index: 0;
+  right: 0; /* Aligns to the right */
+  top: 0px;
+  width: 786px; /* Matches the width of the left image */
+  height: 987px; /* Matches the height of the left image */
+  z-index: 0; /* Matches the z-index of the left image */
 }
 
 .services .section-heading {

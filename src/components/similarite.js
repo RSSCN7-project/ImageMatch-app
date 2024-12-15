@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { toast } from "react-toastify"; // Assuming you're using toast for notifications
+import { toast } from "react-toastify";
 import ImageUploading from "react-images-uploading";
 import "react-toastify/dist/ReactToastify.css";
 import "./similarite.css";
@@ -11,78 +11,110 @@ import DominantColorsComponent from './DominantColorsComponent';
 import GaborDescriptorsComponent from './GaborDescriptorsComponent';
 import HuMomentsComponent from './HuMomentsComponent';
 
-const Similarity = () => {
+const Similarite = () => {
+  const [uploadedImage, setUploadedImage] = useState(null);
   const [similarImages, setSimilarImages] = useState([]);
-  const [uploadedImage, setUploadedImage] = useState(null); // To store the uploaded image URL
-  const [userName, setUserName] = useState(null);
-  const [selectedAnalysis, setSelectedAnalysis] = useState(null);
-
+  const [queryDescriptors, setQueryDescriptors] = useState({});
+  const [feedbackItems, setFeedbackItems] = useState([]);
+  const [userName, setUserName] = useState(""); // For storing the user's name
   const analysisTypes = [
     { key: 'histogram', label: 'Histogram', component: HistogramComponent },
     { key: 'dominant_colors', label: 'Dominant Colors', component: DominantColorsComponent },
     { key: 'gabor_descriptors', label: 'Gabor Descriptors', component: GaborDescriptorsComponent },
     { key: 'hu_moments', label: 'Hu Moments', component: HuMomentsComponent }
   ];
-
-  // Function to handle the file upload
-  const onUpload = async (imageList) => {
-    try {
-      const formData = new FormData();
-      formData.append("file", imageList[0].file);
-
-      // Send the image to the backend
-      const uploadResponse = await axios.post("http://localhost:5001/save-image", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      // Successfully uploaded
-      toast.success("Image uploaded successfully!");
-
-      // Store similar images in state
-      if (uploadResponse.data.similar_images) {
-        setSimilarImages(uploadResponse.data.similar_images);
-      }
-
-      // Optionally, store the uploaded image URL
-      setUploadedImage(uploadResponse.data.uploaded_image_url); // URL for the uploaded image
-
-    } catch (error) {
-      toast.error("Error uploading image. Please try again.");
-      console.error(error);
-    }
-  };
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user")); // Get user data from localStorage
     if (user && user.fullName) {
       setUserName(user.fullName); // Set the user's full name
     }
   }, []);
+
   useEffect(() => {
-    // Fetch similar images from the backend API
-    fetch("http://localhost:5001/get-similar-images")
-      .then((response) => {
-        console.log("DEBUG: API response status:", response.status);
-        return response.json();
-      })
-      .then((data) => {
-        console.log("DEBUG: API response data:", data);
-        if (data.similar_images) {
-          setSimilarImages(data.similar_images);
-        } else {
-          console.warn("DEBUG: No 'similar_images' field in API response.");
-        }
-      })
-      .catch((error) => {
-        console.error("DEBUG: Error fetching similar images:", error);
+    // Retrieve the uploaded image path and similar images from localStorage
+    const uploadedImageData = localStorage.getItem("uploadedImage");
+    const similarImagesData = localStorage.getItem("similarImages");
+    const queryDescriptorsData = localStorage.getItem("queryDescriptors");
+
+    if (uploadedImageData) {
+      setUploadedImage(uploadedImageData);
+    }
+
+    if (similarImagesData) {
+      setSimilarImages(JSON.parse(similarImagesData));
+    }
+
+    if (queryDescriptorsData) {
+      setQueryDescriptors(JSON.parse(queryDescriptorsData));
+    }
+  }, []);
+
+  const handleFeedbackChange = (index, event) => {
+    const newSimilarImages = [...similarImages];
+    const feedback = event.target.value;
+
+    // Update the feedback state
+    newSimilarImages[index].feedback = feedback;
+    setSimilarImages(newSimilarImages);
+
+    // Store the feedback in the feedbackItems array
+    const updatedFeedbackItems = [...feedbackItems];
+    updatedFeedbackItems[index] = {
+      image_name: newSimilarImages[index].image_name,
+      category: newSimilarImages[index].category,
+      feedback: feedback
+    };
+    setFeedbackItems(updatedFeedbackItems);
+  };
+
+  const handleSubmitFeedback = async () => {
+    const validFeedbackItems = feedbackItems.filter(
+      item => item && item.image_name && item.category && item.feedback
+    );
+  
+    if (validFeedbackItems.length === 0) {
+      console.error("No valid feedback items found.");
+      return;
+    }
+  
+    try {
+      const response = await fetch("http://localhost:5001/submit_feedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query_descriptors: queryDescriptors,
+          feedback_items: validFeedbackItems,
+        }),
       });
-  }, []); // Run once on mount
+  
+      const data = await response.json();
+      if (data.status === "success") {
+        // Update similarImages state with the new matches
+        if (data.similar_images) {
+          // Convert numpy.float64 to regular number if needed
+          const processedSimilarImages = data.similar_images.map(img => ({
+            ...img,
+            similarity_score: Number(img.similarity_score)
+          }));
 
-  useEffect(() => {
-    console.log("DEBUG: Current state of similarImages:", similarImages);
-  }, [similarImages]); // Log when similarImages updates
-
+          setSimilarImages(processedSimilarImages);
+          
+          // Update localStorage with new similar images
+          localStorage.setItem("similarImages", JSON.stringify(processedSimilarImages));
+        }
+        console.log("Feedback submitted successfully.");
+        
+        // Reset feedback items after submission
+        setFeedbackItems([]);
+      } else {
+        console.error("Error submitting feedback:", data.message);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
   return (
     <div className="image-manager">
       {/* Header Section */}
@@ -114,8 +146,6 @@ const Similarity = () => {
              {analysisTypes.map(type => (
   <button
     key={type.key}
-    className={`btn ${selectedAnalysis === type.key ? 'btn-primary' : 'btn-secondary'} mr-2`}
-    onClick={() => setSelectedAnalysis(type.key)}
     disabled={!similarImages.length}
     style={{
       width: '135px', // Fixed width for buttons
@@ -144,18 +174,6 @@ const Similarity = () => {
                 </div>
               </div>
             </div>
-
-            {similarImages.length > 0 && similarImages[0].filename && (
-              selectedAnalysis === 'histogram' ? (
-                <HistogramComponent imageFilename={similarImages[0].filename} />
-              ) : selectedAnalysis === 'dominant_colors' ? (
-                <DominantColorsComponent imageFilename={similarImages[0].filename} />
-              ) : selectedAnalysis === 'gabor_descriptors' ? (
-                <GaborDescriptorsComponent imageFilename={similarImages[0].filename} />
-              ) : (
-                <HuMomentsComponent imageFilename={similarImages[0].filename} />
-              )
-            )}
           </div>
         </div>
 
@@ -166,87 +184,236 @@ const Similarity = () => {
 
             <h2 className="tm-block-title">Uploaded Image</h2>
             <div >
-              {similarImages.length > 0 && similarImages[0].filename ? (
+            {uploadedImage ? (
+        <img
+          src={`http://localhost:5001/${uploadedImage}`}
+          alt="Uploaded"
+          style={{
+            maxWidth: "300px",
+            border: "1px solid #ccc",
+            borderRadius: "5px",
+            marginBottom: "20px",
+          }}
+        />
+      ) : (
+        <p>No uploaded image to display.</p>
+      )}
+                </div>
+                </div>
+                </div>
+                <div className="col-12 tm-block-col"
+                style={{
+                  maxheight: "880px",
+                }}>
+  <div
+  className="tm-bg-primary-dark tm-block tm-block-taller"
+  style={{
+    height: "1000px",
+    maxHeight: "1550px", // Set the maximum height for the container
+    overflowY: "auto", // Optional: Add scroll if content exceeds height
+  }}
+>
+  <h2 className="tm-block-title">Similar Images</h2>
+
+  <div className="tm-notification-items">
+    <div className="media tm-notification-item">
+      <div id="pieChartContainer">
+        <div
+          className="results-container"
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "space-around", // Ensures even spacing
+            gap: "20px", // Space between cards
+            padding: "20px", // Adds overall padding for the container
+            backgroundColor: "#033761", // Optional: Background color for better contrast
+          }}
+        >
+          {similarImages.length > 0 ? (
+            similarImages.map((image, index) => (
+              <div
+                key={image.image_name || index}
+                className="image-card"
+                style={{
+                  padding: "10px", // Space inside the card
+                  width: "200px", // Consistent card width
+                  textAlign: "center",
+                  border: "1px solid rgba(141, 141, 141, 0.35)", // Subtle border
+                  borderRadius: "8px", // Rounded corners for a polished look
+                  backgroundColor: "rgba(141, 141, 141, 0.35)", // Semi-transparent background
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)", // Slight shadow for depth
+                }}
+              >
                 <img
-                  src={`http://localhost:5001/processed/${similarImages[0].filename}`}
-                  alt="Uploaded"
+                  src={`http://localhost:5001/static/dataset/${image.category}/${image.image_name}`}
+                  alt={image.image_name}
                   style={{
-                    minHeight: '250px',
-                    height: '350px',
-                    maxWidth: "350px",
-                    objectFit: "cover",
+                    maxWidth: "100%",
+                    maxHeight: "500px", // Adjusted height for larger images
+                    objectFit: "cover", // Ensures the image doesn't stretch
+                    borderRadius: "5px", // Slight rounding for the image
                   }}
                 />
-              ) : (
-                <p>No similar images found. Upload an image to see similar results.</p>
-              )}
-                </div>
-                </div>
-                </div>
-                <div className="col-12 tm-block-col">
-  <div className="tm-bg-primary-dark tm-block tm-block-taller">
-    <h2 className="tm-block-title">Similar Images</h2>
+                <p style={{ fontSize: "14px", marginTop: "10px", color: "#fff" }}>
+                  Category: {image.category}
+                </p>
+                <p
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    margin: "5px 0",
+                    color: "#fff",
+                  }}
+                >
+                  Similarity Score: {image.similarity_score?.toFixed(4)}
+                </p>
+                <label htmlFor={`feedback-${index}`}>Feedback</label>
+                <select
+                className="feedback-dropdown"
+                style={{
+                  width: "100%",
+                  padding: "5px",
+                  borderRadius: "5px",
+                  border: "1px solid rgba(255, 255, 255, 0.6)",
+                  backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  color: "#fff",
+                  fontSize: "14px",
+                }}
+                  id={`feedback-${index}`}
+                  value={image.feedback || "neutral"}  // Default to neutral if no feedback
+                  onChange={(event) => handleFeedbackChange(index, event)}
+                >
+                  <option value="neutral">Neutral</option>
+                  <option value="irrelevant">Irrelevant</option>
+                  <option value="relevant">Relevant</option>
+                </select>
+              </div>
+            ))
+          ) : (
+            <p style={{ color: "#fff", textAlign: "center" }}>
+              No similar images found. Upload an image to see similar results.
+            </p>
+          )}
+        </div>
 
-    <div class="tm-notification-items">
-                            <div class="media tm-notification-item">
-    <div id="pieChartContainer">
-      <div
-        className="results-container"
+        {/* Feedback section */}
+        <div 
+                  id="feedback-message" 
+                  style={{ 
+                    textAlign: "center", 
+                    marginTop: "20px" 
+                  }}
+                >
+                </div>
+                
+                <button
+        onClick={handleSubmitFeedback}
         style={{
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "space-around", // Adjust to space items evenly
-          gap: "20px",
-          padding: "10px", // Adding padding for spacing between images
+          marginTop: "20px",
+          padding: "10px 20px",
+          backgroundColor: "#4CAF50",
+          color: "white",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
         }}
       >
-        {similarImages.length > 0 ? (
-          similarImages.map((image, index) => (
-            <div
-              key={image.image_name || index}
-              style={{
-                padding: "10px", // Added padding for spacing inside the box
-                width: "200px", // Set the width for the image card
-                height: "300px", // Set the height for the image card
-                textAlign: "center",
-                border: "1px solid #8d8d8d59", // Border around each image box
-                borderRadius: "8px", // Rounded corners for each image box
-                backgroundColor: "#8d8d8d59", // Background color for the box
-              }}
-              className="image-card"
-            >
-              <img
-                src={`http://localhost:5001/static/dataset/${image.category}/${image.image_name}`}
-                alt={image.image_name}
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "180px", // Limit the image height
-                  objectFit: "cover", // Ensure the image fits in the box
-                  borderRadius: "5px", // Optional: rounded corners for the image
-                }}
-              />
-              <p style={{ fontSize: "14px", marginTop: "10px" ,color: '#fff'}}>Category: {image.category}</p>
-              <p style={{ fontSize: "14px", fontWeight: "bold" ,color: '#fff' }}>
-                Similarity Score: {image.similarity_score?.toFixed(4)}
-              </p>
-            </div>
-          ))
-        ) : (
-          <p>No similar images found. Upload an image to see similar results.</p>
-        )}
+        Submit Feedback
+      </button>
       </div>
     </div>
   </div>
 </div>
+</div>
+</div>
+    <div style={{ padding: "20px" }}>
+      <h1>Uploaded Image</h1>
+      {uploadedImage ? (
+        <img
+          src={`http://localhost:5001/${uploadedImage}`}
+          alt="Uploaded"
+          style={{
+            maxWidth: "300px",
+            border: "1px solid #ccc",
+            borderRadius: "5px",
+            marginBottom: "20px",
+          }}
+        />
+      ) : (
+        <p>No uploaded image to display.</p>
+      )}
 
+      <h2>Similar Images</h2>
+      {similarImages.length > 0 ? (
+        <div style={{ display: "flex", flexWrap: "wrap" }}>
+          {similarImages.map((image, index) => (
+            <div
+              key={index}
+              style={{
+                margin: "10px",
+                border: "1px solid #ddd",
+                padding: "10px",
+                width: "200px",
+                borderRadius: "5px",
+                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              <img
+                src={`http://localhost:5001${image.image_path}`}
+                alt={`Similar ${index + 1}`}
+                style={{
+                  width: "100%",
+                  height: "150px",
+                  objectFit: "cover",
+                  borderRadius: "5px",
+                  marginBottom: "10px",
+                }}
+              />
+              <p><strong>Category:</strong> {image.category}</p>
+              <p><strong>Similarity Score:</strong> {image.similarity_score.toFixed(2)}</p>
+              
+              {/* Feedback Dropdown */}
+              <div style={{ marginTop: "10px" }}>
+                <label htmlFor={`feedback-${index}`}>Feedback</label>
+                <select
+                  id={`feedback-${index}`}
+                  value={image.feedback || "neutral"}  // Default to neutral if no feedback
+                  onChange={(event) => handleFeedbackChange(index, event)}
+                  style={{
+                    width: "100%",
+                    padding: "5px",
+                    marginTop: "5px",
+                  }}
+                >
+                  <option value="neutral">Neutral</option>
+                  <option value="irrelevant">Irrelevant</option>
+                  <option value="relevant">Relevant</option>
+                </select>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p>No similar images to display.</p>
+      )}
 
-
-</div>
-</div>
-</div>
-</div>
+      <button
+        onClick={handleSubmitFeedback}
+        style={{
+          marginTop: "20px",
+          padding: "10px 20px",
+          backgroundColor: "#4CAF50",
+          color: "white",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
+      >
+        Submit Feedback
+      </button>
+    </div>
+    </div>
   );
 };
 
-export default Similarity;
-
+export default Similarite;

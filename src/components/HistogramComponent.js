@@ -106,13 +106,16 @@ const HistogramComponent = ({ imageFilename }) => {
         title: {
           display: true,
           text: 'Pixel Intensity'
-        }
+        },
+        max: 2000,
+        min: 0  
       },
       y: {
         title: {
           display: true,
           text: 'Pixel Count'
-        }
+        },
+        max: 2000 
       }
     }
   };
