@@ -179,13 +179,13 @@ const Similarite = () => {
             </div>
             {uploadedImage && (
   selectedAnalysis === 'histogram' ? (
-    <HistogramComponent imageFilename={`http://localhost:5001/${uploadedImage}`} />
+    <HistogramComponent imageFilename={`${uploadedImage}`} />
   ) : selectedAnalysis === 'dominant_colors' ? (
-    <DominantColorsComponent imageFilename={`http://localhost:5001/${uploadedImage}`} />
+    <DominantColorsComponent imageFilename={`${uploadedImage}`} />
   ) : selectedAnalysis === 'gabor_descriptors' ? (
-    <GaborDescriptorsComponent imageFilename={`http://localhost:5001/${uploadedImage}`} />
+    <GaborDescriptorsComponent imageFilename={`${uploadedImage}`} />
   ) : (
-    <HuMomentsComponent imageFilename={`http://localhost:5001/${uploadedImage}`} />
+    <HuMomentsComponent imageFilename={`${uploadedImage}`} />
   )
 )}
           </div>
@@ -222,7 +222,7 @@ const Similarite = () => {
   <div
   className="tm-bg-primary-dark tm-block tm-block-taller"
   style={{
-    height: "1000px",
+    height: "1100px",
     maxHeight: "1550px", // Set the maximum height for the container
     overflowY: "auto", // Optional: Add scroll if content exceeds height
   }}

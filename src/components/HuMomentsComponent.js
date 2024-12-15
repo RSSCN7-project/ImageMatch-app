@@ -2,17 +2,16 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const HuMomentsComponent = ({ imageFilename }) => {
-  const [huMoments, setHuMoments] = useState(null);
+  const [humomentsImageUrl, setHumomentsImageUrl] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchHuMoments = async () => {
       try {
         console.log('Fetching Hu Moments for image:', imageFilename);
-        
-        const response = await axios.post('http://localhost:5001/calculate-feature-descriptors', {
-          image: imageFilename,
-          descriptor_type: 'hu_moments'
+
+        const response = await axios.post('http://localhost:5001/calculate-hu-moments', {
+          image: imageFilename
         }, {
           headers: {
             'Content-Type': 'application/json'
@@ -21,11 +20,11 @@ const HuMomentsComponent = ({ imageFilename }) => {
 
         console.log('Hu Moments response:', response.data);
 
-        if (response.data.descriptors) {
-          setHuMoments(response.data.descriptors);
+        if (response.data.humoments_image_url) {
+          setHumomentsImageUrl(response.data.humoments_image_url);
           setError(null);
         } else {
-          setError('No Hu Moments data received');
+          setError('No Hu Moments image URL received');
         }
       } catch (error) {
         console.error('Error fetching Hu Moments:', error);
@@ -51,35 +50,16 @@ const HuMomentsComponent = ({ imageFilename }) => {
   return (
     <div style={{ width: '100%', padding: '20px' }}>
       <h2 className="tm-block-title">Hu Moments</h2>
-      {huMoments ? (
-        <div style={{ 
-          backgroundColor: '#44444400', 
-          padding: '15px', 
-          borderRadius: '8px',
-          maxHeight: '300px',
-          overflowY: 'auto'
-        }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th style={{ border: '1px solid #666', padding: '8px', color: 'white'  }}>Moment Index</th>
-                <th style={{ border: '1px solid #666', padding: '8px' , color: 'white' }}>Log-Transformed Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              {huMoments.map((value, index) => (
-                <tr key={index}>
-                  <td style={{ border: '1px solid #666', padding: '8px', textAlign: 'center', color: 'white'  }}>{index + 1}</td>
-                  <td style={{ border: '1px solid #666', padding: '8px', textAlign: 'right' , color: 'white' }}>
-                    {value.toFixed(4)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {humomentsImageUrl ? (
+        <div style={{ marginTop: '20px' }}>
+          <img 
+            src={humomentsImageUrl} 
+            alt="Hu Moments Visualized" 
+            style={{ maxWidth: '600px', height: '300px', borderRadius: '8px' }} 
+          />
         </div>
       ) : (
-        <p>Loading Hu Moments...</p>
+        <p>Loading Hu Moments visualized image...</p>
       )}
     </div>
   );
